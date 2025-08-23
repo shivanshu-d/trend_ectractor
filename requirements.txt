@@ -1,0 +1,11 @@
+python-dotenv
+tweepy
+praw
+pytrends
+nltk
+pandas
+matplotlib
+jinja2
+pdfkit
+click
+PyYAML

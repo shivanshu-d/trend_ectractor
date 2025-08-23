@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Weekly Marketing Trends Report – {{ period_label }}</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <header>
+    <h1>Weekly Marketing Trends Report</h1>
+    <p class="subtitle">{{ period_label }} • Region: {{ geo }}</p>
+    <p>Records analyzed: {{ stats.total_records }} • Unique topics: {{ stats.unique_topics }}</p>
+  </header>
+
+  <section>
+    <h2>Highlights</h2>
+    <ul>
+      <li>Top category by volume: <strong>{{ highlights.top_category }}</strong></li>
+      <li>Most positive category (avg sentiment): <strong>{{ highlights.positive_category }}</strong></li>
+      <li>Top trend by engagement: <strong>{{ highlights.top_trend.title }}</strong> ({{ highlights.top_trend.platform }})</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Category Breakdown</h2>
+    <img src="../assets/category_counts.png" alt="Category counts">
+    <img src="../assets/category_sentiment.png" alt="Category sentiment">
+  </section>
+
+  <section>
+    <h2>Top Trends</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Platform</th><th>Title</th><th>Category</th><th>Engagement</th><th>Sentiment</th><th>When</th><th>Link</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for r in top_trends %}
+        <tr>
+          <td>{{ r.platform }}</td>
+          <td>{{ r.title }}</td>
+          <td>{{ r.category }}</td>
+          <td>{{ r.engagement }}</td>
+          <td>{{ "%.2f"|format(r.sentiment_compound) }}</td>
+          <td>{{ r.created_at }}</td>
+          <td>{% if r.url %}<a href="{{ r.url }}" target="_blank">Open</a>{% else %}-{% endif %}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    <p>Generated {{ generated_at }} • Trend Extraction Workflow</p>
+  </footer>
+</body>
+</html>

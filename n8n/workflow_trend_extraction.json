@@ -1,0 +1,60 @@
+{
+  "name": "Weekly Trend Extraction",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyWeek",
+              "hour": 8,
+              "weekday": [
+                "monday"
+              ],
+              "timezone": "Asia/Kolkata"
+            }
+          ]
+        }
+      },
+      "id": "1",
+      "name": "Weekly Cron",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [260, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "none",
+        "url": "http://localhost:8000/ingest",
+        "method": "POST",
+        "jsonParameters": true,
+        "payload": "{\"days\":7}",
+        "options": {}
+      },
+      "id": "2",
+      "name": "Ingest (HTTP)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [520, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "none",
+        "url": "http://localhost:8000/report",
+        "method": "POST",
+        "jsonParameters": true,
+        "payload": "{\"days\":7, \"format\":\"html\"}",
+        "options": {}
+      },
+      "id": "3",
+      "name": "Report (HTTP)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [780, 300]
+    }
+  ],
+  "connections": {
+    "Weekly Cron": { "main": [[ { "node": "Ingest (HTTP)", "type": "main", "index": 0 } ]] },
+    "Ingest (HTTP)": { "main": [[ { "node": "Report (HTTP)", "type": "main", "index": 0 } ]] }
+  }
+}

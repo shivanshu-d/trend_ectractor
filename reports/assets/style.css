@@ -1,0 +1,10 @@
+body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 30px; color:#111; }
+header { border-bottom: 1px solid #eee; margin-bottom: 12px; }
+h1 { font-size: 26px; margin: 0; }
+.subtitle { color:#666; margin-top: 6px; }
+section { margin: 18px 0; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #eee; padding: 8px 10px; text-align: left; }
+th { background: #fafafa; }
+img { max-width: 100%; height: auto; display:block; margin: 8px 0; }
+footer { color:#666; font-size: 12px; border-top: 1px solid #eee; padding-top: 12px; }
