@@ -1,8 +1,4 @@
-"""
-Simple script to run the pipeline end-to-end (mocked by default).
-Usage:
-  python run_pipeline.py
-"""
+
 import os
 from src.pipeline import init_db, ingest_and_store, generate_report
 
