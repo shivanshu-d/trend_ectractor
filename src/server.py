@@ -5,7 +5,7 @@ from pydantic import BaseModel
 import datetime
 import os
 
-# Import your pipeline functions (mocked now, real later)
+
 try:
     from src.pipeline import ingest_and_store, generate_report, query_last_days
 except ImportError:
@@ -15,9 +15,6 @@ except ImportError:
 
 app = FastAPI(title="Trend Extraction API")
 
-# -------------------------------
-# Models
-# -------------------------------
 class IngestBody(BaseModel):
     days: int = 7
 
@@ -25,11 +22,7 @@ class ReportBody(BaseModel):
     days: int = 7
     format: str = "html"
 
-# -------------------------------
-# Routes
-# -------------------------------
 
-# Health check
 @app.get("/")
 def root():
     return {"message": "🚀 Trend Extractor API is running!"}
@@ -38,7 +31,7 @@ def root():
 def health():
     return {"status": "ok"}
 
-# Mock endpoint (demo)
+
 @app.get("/mock")
 def mock_data():
     return {
@@ -50,7 +43,7 @@ def mock_data():
         "timestamp": datetime.datetime.now().isoformat()
     }
 
-# Ingest trends (placeholder)
+
 @app.post("/ingest")
 def ingest(body: IngestBody):
     if ingest_and_store is None:
@@ -61,20 +54,18 @@ def ingest(body: IngestBody):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Generate report
+
 from fastapi.responses import FileResponse
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
-# -------------------------------
-# Generate report (HTML or PDF)
-# -------------------------------
+
 @app.post("/report")
 def report(body: ReportBody):
     report_dir = "reports"
     os.makedirs(report_dir, exist_ok=True)
 
-    # Get latest trends (limit 20)
+    
     df = query_last_days(body.days)
     if df is None or df.empty:
         raise HTTPException(status_code=404, detail="No trends available to generate report.")
@@ -109,9 +100,9 @@ def report(body: ReportBody):
         y = height - 100
         for i, t in enumerate(trends, start=1):
             text = f"{i}. {t['title']} ({t['platform']}, {t['category']}) | Engagement: {t['engagement']} | Sentiment: {t['sentiment_compound']:.2f}"
-            c.drawString(50, y, text[:110])  # clip long text
+            c.drawString(50, y, text[:110])  
             y -= 20
-            if y < 50:  # new page if too low
+            if y < 50:  
                 c.showPage()
                 c.setFont("Helvetica", 10)
                 y = height - 50
@@ -122,11 +113,11 @@ def report(body: ReportBody):
 
     else:
         raise HTTPException(status_code=400, detail="Invalid format. Use 'html' or 'pdf'.")
-# List trends
+
 @app.get("/trends")
 def trends(limit: int = 20):
     if query_last_days is None:
-        # Mock fallback
+        
         return [
             {"platform": "Reddit", "title": "AI in Marketing", "category": "content marketing", "engagement": 1500, "sentiment_compound": 0.9, "created_at": str(datetime.date.today()), "url": "http://example.com"},
             {"platform": "X", "title": "TikTok Ads", "category": "social media marketing", "engagement": 1200, "sentiment_compound": 0.2, "created_at": str(datetime.date.today()), "url": "http://example.com"},
