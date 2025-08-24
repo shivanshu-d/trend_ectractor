@@ -23,7 +23,7 @@ def load_keywords():
         with open(KEYWORDS_PATH, "r", encoding="utf-8") as f:
             return yaml.safe_load(f)
     except Exception:
-        # fallback: simple keywords
+        
         return {
             "categories": {
                 "general": ["marketing","seo","content","ads","social","video","influencer","ai"]
