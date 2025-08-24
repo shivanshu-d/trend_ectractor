@@ -1,22 +1,19 @@
-"""
-Single-file pipeline for extraction -> filter -> sentiment -> category -> store -> report
-Designed so beginners can copy/paste and run in MOCK_MODE.
-"""
+
 import os, json, sqlite3, hashlib, datetime
 from typing import List, Dict, Any
-# from .config import DB_PATH, load_keywords, MOCK_MODE, GEO, REPORTS_DIR
+
 from src.config import DB_PATH, load_keywords, MOCK_MODE, GEO, REPORTS_DIR
 import pandas as pd
 import matplotlib.pyplot as plt
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-# --- helpers ------------------------------------------------
+
 def _ensure_dirs():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     os.makedirs(os.path.join(REPORTS_DIR, "assets"), exist_ok=True)
     os.makedirs(os.path.join(REPORTS_DIR, "templates"), exist_ok=True)
 
-# --- connectors (lightweight; only used when MOCK_MODE=False) ---
+
 def fetch_x_recent(keywords: List[str], days: int = 7, max_results: int = 100) -> List[Dict[str, Any]]:
     """Fetch X (Twitter) posts — returns [] when credentials/libraries are missing"""
     try:
@@ -135,7 +132,7 @@ def fetch_google_trends(keywords: List[str], top_n: int = 20, pytrends=None) -> 
                     "engagement": 0,
                     "raw_metrics": {"type": "daily_trending"},
                 })
-        # interest over time for first few keywords
+        
         seed = keywords[:5] if keywords else ["marketing"]
         py.build_payload(seed, timeframe="now 7-d", geo=GEO if len(GEO)==2 else "")
         iot = py.interest_over_time()
@@ -159,7 +156,7 @@ def fetch_google_trends(keywords: List[str], top_n: int = 20, pytrends=None) -> 
         pass
     return results
 
-# --- extract / transform / classify / sentiment --------------------
+
 def extract_all(keywords: List[str], days:int=7) -> List[Dict[str,Any]]:
     out = []
     out.extend(fetch_x_recent(keywords, days=days))
@@ -175,7 +172,7 @@ def build_keyword_list() -> List[str]:
     return list(set(flat))
 
 def normalize_record(r: Dict[str, Any]) -> Dict[str, Any]:
-    # ensure fields + create stable id
+   
     rid = r.get("id")
     if not rid:
         raw = (r.get("platform","") + (r.get("title") or "") + (r.get("created_at") or ""))
@@ -216,7 +213,7 @@ def filter_marketing(records: List[Dict[str, Any]], keywords: List[str]) -> List
             out.append(r)
     return out
 
-# sentiment (VADER)
+
 def add_sentiment(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     try:
         import nltk
@@ -238,7 +235,6 @@ def add_sentiment(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         r['sentiment_compound'] = float(s.get("compound", 0.0))
     return records
 
-# categorize using keywords.yaml
 def categorize(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     keys = load_keywords()
     mapping = keys.get("categories", {})
@@ -252,7 +248,7 @@ def categorize(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         r['category'] = chosen or "uncategorized"
     return records
 
-# --- storage ---
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS trends (
     id TEXT PRIMARY KEY,
@@ -314,7 +310,7 @@ def upsert_records(records: List[Dict[str, Any]]) -> int:
         con.commit()
     return cnt
 
-# --- report ---
+
 def query_last_days(days: int=7) -> pd.DataFrame:
     init_db()
     since = (datetime.datetime.utcnow() - datetime.timedelta(days=days)).isoformat()
@@ -327,7 +323,7 @@ def generate_report(days:int=7, out_html: str=None, make_pdf: bool=False) -> str
     os.makedirs(REPORTS_DIR, exist_ok=True)
     assets_dir = os.path.join(REPORTS_DIR, "assets")
 
-    # charts
+    
     if not df.empty:
         cat_counts = df['category'].value_counts()
         plt.figure()
@@ -347,10 +343,10 @@ def generate_report(days:int=7, out_html: str=None, make_pdf: bool=False) -> str
         plt.savefig(cat_sent_png)
         plt.close()
     else:
-        # create empty placeholders
+        
         cat_counts_png = os.path.join(assets_dir, "category_counts.png")
         cat_sent_png = os.path.join(assets_dir, "category_sentiment.png")
-        # create tiny blank images so template doesn't break
+        
         for p in (cat_counts_png, cat_sent_png):
             plt.figure(figsize=(2,1)); plt.text(0.5,0.5,"No data",ha="center"); plt.axis('off'); plt.savefig(p); plt.close()
 
@@ -363,7 +359,7 @@ def generate_report(days:int=7, out_html: str=None, make_pdf: bool=False) -> str
     period_label = f"Last {days} days"
     generated_at = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
-    # render template (the templates are in repo reports/templates)
+    
     templates_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "reports", "templates")
     env = Environment(loader=FileSystemLoader(templates_dir), autoescape=select_autoescape(['html','xml']))
     tpl = env.get_template("weekly_report.html.j2")
@@ -385,7 +381,7 @@ def generate_report(days:int=7, out_html: str=None, make_pdf: bool=False) -> str
 
     return out_html
 
-# --- high-level orchestrator ---
+
 def ingest_and_store(days:int=7) -> int:
     keys = build_keyword_list()
     if MOCK_MODE:
